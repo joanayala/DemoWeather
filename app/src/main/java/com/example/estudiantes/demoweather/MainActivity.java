@@ -1,13 +1,16 @@
 package com.example.estudiantes.demoweather;
 
+import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,21 +25,32 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String KEY = "6112087e259146b376c27017bda9667c";
     private final static String DOMAIN = "https://api.openweathermap.org/data/2.5/weather";
-    private EditText txtSearch = findViewById(R.id.txtSearch);
+    private final static String IMGDOMAIN = "https://openweathermap.org/img/w/";
+
+    private final static String FORMAT = "https://api.openweathermap.org/data/2.5/weather?q=Cali,co&appid=6498e268f2de120d0cd71288c41cbcc6";
+
+    private EditText txtSearch;
     private Button btnSearch;
     private TextView lblCurrent;
     private TextView lblmin;
     private TextView lblmax;
+
+    private TextView textViewWeather;
+    private ImageView imgWeather;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        txtSearch = findViewById(R.id.txtSearch);
         btnSearch = findViewById(R.id.btnSearch);
         lblCurrent = findViewById(R.id.lblCurrent);
         lblmin = findViewById(R.id.lblmin);
         lblmax = findViewById(R.id.lblmax);
+
+        textViewWeather = findViewById(R.id.textViewWeather);
+        imgWeather = findViewById(R.id.imgWeather);
 
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         Runnable thread = new Runnable() {
             @Override
             public void run() {
-                String strUrl = DOMAIN + "?q=" + queryTmp + "&appid=" + KEY;
+                String strUrl = DOMAIN + "?q=" + queryTmp + "&appid=" + KEY + "&units=metric&lang=es";
                 URL url = null;
                 CAFData remoteData = null;
 
@@ -71,7 +85,29 @@ public class MainActivity extends AppCompatActivity {
 
                     try {
                         JSONObject root = new JSONObject(remoteData.toText());
+                        JSONArray weather = root.getJSONArray("weather");
                         JSONObject main = root.getJSONObject("main");
+
+                        String desc = "";
+                        String icon = "";
+                        Bitmap bitmap = null;
+
+                        if(weather.length() > 0){
+                            JSONObject aWeather = weather.getJSONObject(0);
+                            desc = aWeather.getString("description");
+                            icon = aWeather.getString("icon");
+
+                            strUrl = IMGDOMAIN + icon + ".png";
+                            url = new URL(strUrl);
+                            remoteData = CAFData.dataWithContentsOfURL(url);
+                            if(remoteData != null) {
+                                bitmap = remoteData.toImage();
+                            }
+                        }
+
+
+                        final String descTemp = desc;
+                        final Bitmap bitmapTemp = bitmap;
                         final float temp = (float) main.getDouble("temp");
                         final float tempMin = (float) main.getDouble("temp_min");
                         final float tempMax = (float) main.getDouble("temp_max");
@@ -82,10 +118,14 @@ public class MainActivity extends AppCompatActivity {
                                 lblCurrent.setText(String.valueOf(temp));
                                 lblmin.setText(String.valueOf(tempMin));
                                 lblmax.setText(String.valueOf(tempMax));
+                                textViewWeather.setText(descTemp);
+                                imgWeather.setImageBitmap(bitmapTemp);
                             }
                         });
 
                     } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (MalformedURLException e) {
                         e.printStackTrace();
                     }
                 }
