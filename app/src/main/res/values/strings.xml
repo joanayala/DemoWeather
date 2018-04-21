@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">DemoWeather</string>
-    <string name="str_label1">Current</string>
-    <string name="str_label2">Min</string>
-    <string name="str_label3">Max</string>
-    <string name="str_btn_search">Search</string>
+    <string name="Current">Current</string>
+    <string name="Min">Min</string>
+    <string name="Max">Max</string>
+    <string name="Search">Search</string>
+    <string name="Weather">Weather</string>
+    <string name="Go">Go</string>
 </resources>
